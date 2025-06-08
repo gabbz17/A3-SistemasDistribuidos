@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Sistema</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Seus estilos existentes */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background-color: #fefefe; margin: auto; padding: 20px; border: 1px solid #888; border-radius: 8px; width: 80%; max-width: 600px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); position: relative; }
+        .modal-close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .modal-close:hover, .modal-close:focus { color: black; text-decoration: none; cursor: pointer; }
+        .modal label { display: block; margin-bottom: 5px; font-weight: bold; }
+        /* Adjusted this existing modal input style for consistency with new autocomplete */
+        .modal input[type="text"], .modal textarea, .modal select,
+        .modal input[type="email"], .modal input[type="password"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .modal button { background-color: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s ease; }
+        .modal button:hover { background-color: #2980b9; }
+        /* Original autocomplete-container, adjusted to be inline-flex */
+        .autocomplete-container { position: relative; display: inline-flex; width: 100%; align-items: center; }
+        .autocomplete-suggestions { position: absolute; border: 1px solid #d4d4d4; border-bottom: none; border-top: none; z-index: 99; top: 100%; left: 0; right: 0; background-color: #f1f1f1; max-height: 200px; overflow-y: auto; display: none; }
+        .autocomplete-suggestions.active { display: block; }
+        .autocomplete-suggestions div { padding: 10px; cursor: pointer; background-color: #fff; border-bottom: 1px solid #d4d4d4; }
+        .autocomplete-suggestions div:hover { background-color: #e9e9e9; }
+        .autocomplete-suggestions .selected { background-color: DodgerBlue !important; color: #ffffff; }
+        .status-select { width: calc(100% - 22px); padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; background-color: #fff; cursor: pointer; }
+
+        /* NOVOS ESTILOS PARA FILTRO */
+        /* Estilos originais que podem ser substituídos pelos novos ou complementados */
+        .filter-section { background-color: #f8f8f8; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .filter-group { display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
+        .filter-group > div { flex: 1; min-width: 180px; }
+        .filter-group label { margin-bottom: 5px; font-weight: bold; display: block; color: #555; }
+        .filter-group select, .filter-group input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .filter-group button { padding: 10px 20px; border-radius: 5px; border: none; background-color: #28a745; color: white; cursor: pointer; transition: background-color 0.2s ease; }
+        .filter-group button:hover { background-color: #218838; }
+        .filter-group button.clear-button { background-color: #dc3545; }
+        .filter-group button.clear-button:hover { background-color: #c82333; }
+
+        /* Estilo para status "Em Andamento" */
+        .status-em_andamento { background-color: #d1ecf1; color: #0c5460; font-weight: bold; padding: 4px 8px; border-radius: 4px; }
+        /* Outros estilos de status como .status-atribuido, .status-concluido, etc. */
+
+
+        /* NOVOS ESTILOS PARA O DESIGN SOLICITADO - AJUSTES PARA ALINHAMENTO */
+        .filter-section.new-design {
+            background-color: #D9D9D9 ;
+            border: 1px solid black;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: none;
+            display: flex;
+            align-items: center; /* Garante alinhamento vertical centralizado para todos os itens */
+            gap: 15px; /* Espaço entre os principais grupos de elementos */
+            flex-wrap: nowrap; /* Ensure single line on larger screens */
+        }
+
+        .filter-section.new-design .filter-title {
+            font-size: 1.1em;
+            color: black;
+            margin: 0;
+            white-space: nowrap;
+            margin-right: 15px; /* Increased margin for better separation from the first dropdown */
+            text-align: center;
+        }
+
+        .filter-section.new-design .filter-controls {
+            display: flex;
+            align-items: center; /* Alinha verticalmente os elementos dentro do filter-controls */
+            gap: 10px; /* Espaço entre os campos e botões */
+            flex-wrap: nowrap; /* Ensure single line within controls */
+            flex-grow: 1; /* Allows this container to occupy remaining space */
+            /* Removed justify-content: flex-end; from here. We will manage alignment more granularly. */
+        }
+
+        /* Specific styling for the filter dropdowns to give them a defined width */
+        .filter-section.new-design .filter-controls > select { /* Target direct select children of filter-controls */
+            width: 150px; /* Give a fixed width to the filter dropdowns */
+            flex-shrink: 0; /* Prevent them from shrinking */
+            height: 38px; /* Consistent height */
+            padding: 8px 12px; /* Consistent padding */
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2C118.8L146.2%2C259.4L5.4%2C118.8C1.8%2C115.2%2C0%2C110.8%2C0%2C105.8c0%2C-5%2C1.8%2C-9.3%2C5.4%2C-12.9l12.9%2C-13.1c3.6%2C-3.6%2C7.8%2C-5.4%2C12.8%2C-5.4s9.2%2C1.8%2C12.8%2C5.4L146.2%2C188.8l115.3%2C-115.3c3.6%2C-3.6%2C7.8%2C-5.4%2C12.8%2C-5.4c5%2C0%2C9.2%2C1.8%2C12.8%2C5.4l12.9%2C13.1c3.6%2C3.6%2C5.4%2C7.9%2C5.4%2C12.9C292.4%2C110.8%2C290.6%2C115.2%2C287%2C118.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 10px;
+            padding-right: 30px; /* Space for dropdown arrow */
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+
+        /* NEW: Styles for the user search box */
+        /* This targets the autocomplete container specifically for the filter user input */
+        .filter-section.new-design .autocomplete-container {
+            flex-grow: 1; /* Allow it to grow and take available space */
+            min-width: 200px; /* Minimum width for the user name input */
+            max-width: 350px; /* Increased max-width for the user name input */
+            height: 38px;
+            /* No width: 100% here as flex-grow handles it. */
+        }
+
+        /* Styling for the autocomplete input fields */
+        input[type="text"].autocomplete-input {
+            width: 100%; /* Make the input fill its container */
+            padding: 8px 12px;
+            box-sizing: border-box;
+            background-color: #f5f5f5; /* Lighter background for the box */
+            border-radius: 20px; /* More rounded corners */
+            border: none; /* Remove default border */
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); /* Subtle inner shadow */
+            padding-right: 35px; /* Make space for the clear icon */
+            height: 100%; /* Ensure input fills the height of its container */
+        }
+
+        /* Style for the clear icon */
+        .autocomplete-clear {
+            position: absolute;
+            right: 10px; /* Position from the right edge of the input */
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Adjust for perfect vertical centering */
+            cursor: pointer;
+            font-size: 16px; /* Size of the 'x' */
+            color: #888; /* Color of the 'x' */
+            font-weight: bold;
+            display: none; /* Hidden by default */
+            background: none; /* No background for the button */
+            border: none; /* No border for the button */
+            padding: 0; /* No padding for the button */
+            line-height: 1; /* Ensures 'x' is centered */
+            z-index: 100; /* Ensure it's above the input */
+        }
+
+        .autocomplete-clear:hover {
+            color: #555; /* Darker on hover */
+        }
+
+        /* Buttons styling */
+        .filter-section.new-design .filter-controls button {
+            height: 38px;
+            padding: 0 15px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            min-width: 100px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .filter-section.new-design .filter-controls button.apply-btn {
+            cursor: pointer;
+            border: none;
+            background-color: #000; /* Black button for "Pesquisar" */
+            color: white;
+            transition: background-color 0.2s ease;
+        }
+
+        .filter-section.new-design .filter-controls button.apply-btn:hover {
+            background-color: #333;
+        }
+
+        .filter-section.new-design .filter-controls button.clear-button {
+            cursor: pointer;
+            background-color: #f44336; /* Red button for "Limpar" */
+            border: none;
+            color: white;
+        }
+
+        .filter-section.new-design .filter-controls button.clear-button:hover {
+            background-color: #d32f2f;
+        }
+
+        /* Esconder labels dos dropdowns e inputs dentro do new-design para estilo compacto */
+        .filter-section.new-design .filter-group label {
+            display: none;
+        }
+
+        /* Ajuste para quebra de linha em telas menores */
+        @media (max-width: 768px) {
+            .filter-section.new-design {
+                flex-direction: column;
+                align-items: flex-start;
+                flex-wrap: wrap;
+            }
+            .filter-section.new-design .filter-controls {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            .filter-section.new-design .filter-controls select,
+            .filter-section.new-design .filter-controls input[type="text"],
+            .filter-section.new-design .autocomplete-container,
+            .filter-section.new-design .filter-controls button {
+                width: 100%; /* Make them fill the width on small screens */
+                min-width: unset;
+                max-width: unset; /* Remove max-width on small screens */
+            }
+            /* Specific fix for autocomplete inputs on small screens */
+            .filter-section.new-design .autocomplete-container {
+                width: 100%;
+                max-width: none;
+            }
+        }
+
+        /* NOVOS ESTILOS PARA O BOTÃO DE LOGOUT */
+        .logout-button a.styled-logout-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px; /* Space between icon and text */
+            background-color: #f44336; /* Red color, similar to the example */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            width: 100%; /* Ensure it fills the container in the sidebar */
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
+
+        .logout-button a.styled-logout-button:hover {
+            background-color: #d32f2f; /* Darker red on hover */
+        }
+
+        /* Optional: Add an icon if desired, though the example shows text only */
+        .logout-button a.styled-logout-button::before {
+            content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-box-arrow-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h8A.5.5 0 0 0 11 14.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 10 16h-8A1.5 1.5 0 0 1 0 14.5v-2A1.5 1.5 0 0 1 1.5 11h8a.5.5 0 0 1 .5.5z"/><path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708L13.5 5.293a.5.5 0 0 0-.707.707L14.293 8l-1.45 1.45a.5.5 0 0 0 .707.707l2.354-2.353zM8 8a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6A.5.5 0 0 1 8 8z"/></svg>');
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="/img/logo.png" alt="Logo da Empresa">
+            </div>
+            <p style="color: white; font-size: 16px; text-align: center;">
+                Boa sorte na sua função, contamos com você para que possamos prosperar ainda mais! 
+            </p>
+            <div class="logout-button">
+                <a href="/logout" class="styled-logout-button">Logout</a>
+            </div>
+        </aside>
+        <main class="content">
+            <h1>Olá, <%= user.name %>!</h1>
+
+            <%# Seção de Mensagens de Erro/Successo %>
+            <% if (errorMessage && errorMessage !== '') { %>
+                <div class="error-message"><%= errorMessage %></div>
+            <% } %>
+            <% if (successMessage && successMessage !== '') { %>
+                <div class="message"><%= successMessage %></div>
+            <% } %>
+
+            <%# Seção de Filtros (visível apenas para Gerente e Supervisor) %>
+            <% if (profile === 'GERENTE' || profile === 'SUPERVISOR') { %>
+            <section id="filter-section" class="filter-section new-design" style="text-align: center;">
+                <label class="filter-title" style="align-items: center; font-size: 20px; font-family: Arial, Helvetica, sans-serif;"><strong>Escolha o filtro:</strong></label>
+                <div class="filter-controls">
+                    <select id="filter-user-type">
+                        <option value="">Buscar por cargo</option> 
+                        <option value="atendente">Atendente</option>
+                        <option value="supervisor">Supervisor</option>
+                    </select>
+
+                    <div class="autocomplete-container">
+                        <input type="text" id="filter-user-input" class="autocomplete-input" placeholder="Insira o nome do funcionário" style="margin-top: 12px;"> <button type="button" style="margin-top: 7px;" class="autocomplete-clear">&times;</button>
+                        <div id="filter-user-suggestions" class="autocomplete-suggestions"></div>
+                        <input type="hidden" id="filter-user-id">
+                        <input type="hidden" id="filter-user-name-hidden">
+                    </div>
+
+                    <select id="filter-status">
+                        <option value="">Filtrar por Status</option>
+                        <option value="EM_ANDAMENTO">Em Andamento</option>
+                        <option value="CONCLUIDO">Concluído</option>
+                        <option value="ATRIBUIDO">Atribuído</option>
+                    </select>
+
+                    <button id="apply-filter-btn" class="apply-btn">Pesquisar</button>
+                    <button id="clear-filter-btn" class="clear-button">Limpar</button>
+                </div>
+            </section>
+            <% } %>
+
+
+            <%# Seção de Tarefas %>
+            <section id="tarefas">
+                <h2>Tarefas</h2>
+                <% if (profile === 'GERENTE') { %>
+                    <p>Aqui você tem uma visão completa de todas as tarefas da empresa, sem permissão de edição ou deleção.</p>
+                <% } else if (profile === 'SUPERVISOR') { %>
+                    <p>Aqui você pode visualizar e gerenciar as tarefas da sua equipe (editar e excluir).</p>
+                <% } else if (profile === 'ATENDENTE') { %>
+                    <p>Aqui estão as tarefas atribuídas a você. Por favor, mantenha o status atualizado!</p>
+                <% } %>
+
+                <div class="tasks-list">
+                    <div class="task-cards-container" id="task-cards-container">
+                        <% if (pageData.tarefas && pageData.tarefas.length > 0) { %>
+                            <% pageData.tarefas.forEach(tarefa => { %>
+                                <div class="task-card">
+                                    <div class="task-top-section">
+                                        <div class="task-header">
+                                            <h4 class="task-title"><%= tarefa.titulo %></h4>
+                                        </div>
+                                        <div class="task-uuid-button-top">
+                                            <button class="uuid-copy-button" data-uuid="<%= tarefa.uid %>">UUID</button>
+                                        </div>
+                                    </div>
+                                    <div class="task-body">
+                                        <p class="task-description"><%= tarefa.descricao %></p>
+                                    </div>
+                                    <div class="task-details-bottom">
+                                        <div class="task-info-grid">
+                                            <p class="task-detail-label"><strong>Atendente:</strong></p>
+                                            <p class="task-detail-value"><%= tarefa.atendenteFuncionario ? tarefa.atendenteFuncionario.nome : 'N/A' %></p>
+                                            <p class="task-detail-label"><strong>Criado:</strong></p>
+                                            <p class="task-detail-value"><%= tarefa.criado %></p>
+                                            <p class="task-detail-label"><strong>Supervisor:</strong></p>
+                                            <p class="task-detail-value"><%= tarefa.supervisorFuncionario ? tarefa.supervisorFuncionario.nome : 'N/A' %></p>
+                                            <p class="task-detail-label"><strong>Finalizado:</strong></p>
+                                            <p class="task-detail-value"><%= tarefa.finalizado || 'Em aberto' %></p>
+                                        </div>
+                                        <div class="task-status-actions">
+                                            <span class="task-status-value status-<%= tarefa.status.toLowerCase() %>">
+                                                <%# REVISADO: Formato de exibição do status %>
+                                                <% if (tarefa.status === 'EM_ANDAMENTO') { %>
+                                                    Em Andamento
+                                                <% } else if (tarefa.status === 'CONCLUIDO') { %>
+                                                    Concluído
+                                                <% } else if (tarefa.status === 'ATRIBUIDO') { %>
+                                                    Atribuído
+                                                <% } else if (tarefa.status === 'PENDENTE') { %>
+                                                    Pendente
+                                                <% } else { %>
+                                                    <%= tarefa.status %>
+                                                <% } %>
+                                            </span>
+                                            <% if (profile === 'ATENDENTE') { %>
+                                                <button data-id="<%= tarefa.uid %>" data-current-status="<%= tarefa.status %>" class="update-status-btn">Atualizar Status</button>
+                                            <% } else if (profile === 'SUPERVISOR') { %>
+                                                <button data-id="<%= tarefa.uid %>"
+                                                        data-title="<%= tarefa.titulo %>"
+                                                        data-description="<%= tarefa.descricao %>"
+                                                        data-atendente-id="<%= tarefa.atendenteFuncionario ? tarefa.atendenteFuncionario.id : '' %>"
+                                                        data-atendente-name="<%= tarefa.atendenteFuncionario ? tarefa.atendenteFuncionario.nome : '' %>"
+                                                        data-supervisor-id="<%= tarefa.supervisorFuncionario ? tarefa.supervisorFuncionario.id : '' %>"
+                                                        data-supervisor-name="<%= tarefa.supervisorFuncionario ? tarefa.supervisorFuncionario.nome : '' %>"
+                                                        class="edit-btn">Editar</button>
+                                                <button data-id="<%= tarefa.uid %>" class="delete-btn">Excluir</button>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <p id="no-tasks-message" style="display: block;">Nenhuma tarefa encontrada para exibição.</p>
+                        <% } %>
+                    </div>
+                    <p id="no-filter-results-message" style="display: none;">Nenhuma tarefa encontrada com os filtros aplicados.</p>
+                </div>
+            </section>
+
+            <%# Botões para abrir modais de Criar Tarefa e Criar Usuário %>
+            <% if (profile === 'GERENTE' || profile === 'SUPERVISOR') { %>
+            <section id="creation-buttons" class="creation-buttons-section">
+                    <% if (profile === 'SUPERVISOR') { %>
+                        <h2>Crie uma nova Tarefa</h2>
+                        <p>Use o botão abaixo para criar uma nova tarefa.</p>
+                    <% } %>
+                    <% if (profile === 'GERENTE') { %>
+                        <h2>Cadastre um novo Funcionário</h2>
+                        <p>Use o botão abaixo para criar um novo usuário.</p>
+                    <% } %>
+                
+                
+                <div class="button-group">
+                    <% if (profile === 'SUPERVISOR') { %>
+                        <button id="open-create-task-modal" class="action-button">Criar Nova Tarefa</button>
+                    <% } %>
+                    <% if (profile === 'GERENTE') { %>
+                        <button id="open-create-user-modal" class="action-button">Criar Novo Usuário</button>
+                    <% } %>
+                </div>
+            </section>
+            <% } %>
+
+            <script>
+                // Função auxiliar para renderizar um único card de tarefa HTML
+                function renderTaskCard(tarefa, profile) {
+                    const formatStatusText = (status) => {
+                        if (status === 'EM_ANDAMENTO') return 'Em Andamento';
+                        if (status === 'CONCLUIDO') return 'Concluído';
+                        if (status === 'ATRIBUIDO') return 'Atribuído';
+                        if (status === 'PENDENTE') return 'Pendente';
+                        return status;
+                    };
+
+                    const statusClass = `status-${tarefa.status.toLowerCase()}`;
+                    const formattedStatus = formatStatusText(tarefa.status);
+                    const finalizadoText = tarefa.finalizado || 'Em aberto';
+
+                    let actionButtonsHtml = '';
+                    if (profile === 'ATENDENTE') {
+                        actionButtonsHtml = `<button data-id="${tarefa.uid}" data-current-status="${tarefa.status}" class="update-status-btn">Atualizar Status</button>`;
+                    } else if (profile === 'SUPERVISOR') {
+                        actionButtonsHtml = `
+                            <button data-id="${tarefa.uid}"
+                                    data-title="${tarefa.titulo}"
+                                    data-description="${tarefa.descricao}"
+                                    data-atendente-id="${tarefa.atendenteFuncionario ? tarefa.atendenteFuncionario.id : ''}"
+                                    data-atendente-name="${tarefa.atendenteFuncionario ? tarefa.atendenteFuncionario.nome : ''}"
+                                    data-supervisor-id="${tarefa.supervisorFuncionario ? tarefa.supervisorFuncionario.id : ''}"
+                                    data-supervisor-name="${tarefa.supervisorFuncionario ? tarefa.supervisorFuncionario.nome : ''}"
+                                    class="edit-btn">Editar</button>
+                            <button data-id="${tarefa.uid}" class="delete-btn">Excluir</button>
+                        `;
+                    }
+
+                    return `
+                        <div class="task-card">
+                            <div class="task-top-section">
+                                <div class="task-header">
+                                    <h4 class="task-title">${tarefa.titulo}</h4>
+                                </div>
+                                <div class="task-uuid-button-top">
+                                    <button class="uuid-copy-button" data-uuid="${tarefa.uid}">UUID</button>
+                                </div>
+                            </div>
+                            <div class="task-body">
+                                <p class="task-description">${tarefa.descricao}</p>
+                            </div>
+                            <div class="task-details-bottom">
+                                <div class="task-info-grid">
+                                    <p class="task-detail-label"><strong>Atendente:</strong></p>
+                                    <p class="task-detail-value">${tarefa.atendenteFuncionario ? tarefa.atendenteFuncionario.nome : 'N/A'}</p>
+                                    <p class="task-detail-label"><strong>Criado:</strong></p>
+                                    <p class="task-detail-value">${tarefa.criado}</p>
+                                    <p class="task-detail-label"><strong>Supervisor:</strong></p>
+                                    <p class="task-detail-value">${tarefa.supervisorFuncionario ? tarefa.supervisorFuncionario.nome : 'N/A'}</p>
+                                    <p class="task-detail-label"><strong>Finalizado:</strong></p>
+                                    <p class="task-detail-value">${finalizadoText}</p>
+                                </div>
+                                <div class="task-status-actions">
+                                    <span class="task-status-value ${statusClass}">${formattedStatus}</span>
+                                    ${actionButtonsHtml}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    const BACKEND_API_URL = '<%= backendApiUrl %>'; // JÁ ESTÁ AQUI
+                    console.log('DEBUG: BACKEND_API_URL no cliente:', BACKEND_API_URL);
+
+                    // Captura o perfil do usuário logado do EJS para usar no JS
+                    const userProfile = '<%= profile %>';
+                    console.log('DEBUG: Perfil do usuário logado:', userProfile);
+
+
+                    // Funções de callback para os event listeners (para reutilização e remoção)
+                    function copyUuidToClipboard(event) {
+                        const button = event.currentTarget;
+                        const uuidActualValue = button.getAttribute('data-uuid');
+                        if (uuidActualValue) {
+                            navigator.clipboard.writeText(uuidActualValue)
+                                .then(() => {
+                                    const originalText = button.textContent;
+                                    button.textContent = 'Copiado!';
+                                    button.classList.add('copied-feedback');
+                                    setTimeout(() => {
+                                        button.textContent = originalText;
+                                        button.classList.remove('copied-feedback');
+                                    }, 1500);
+                                })
+                                .catch(err => {
+                                    console.error('Falha ao copiar o UUID:', err);
+                                    alert('Erro ao copiar o UUID. Certifique-se de que seu navegador permite cópia via JavaScript.');
+                                });
+                        }
+                    }
+
+                    function openUpdateStatusModal(event) {
+                        const button = event.currentTarget;
+                        const taskId = button.dataset.id;
+                        const currentStatus = button.dataset.currentStatus;
+                        // Certifique-se de que esses elementos existem antes de tentar acessá-los
+                        if (updateStatusUidInput && newStatusSelect) {
+                            updateStatusUidInput.value = taskId;
+                            newStatusSelect.value = currentStatus;
+                            openModal(updateStatusModal);
+                        } else {
+                            console.error("ERRO: Elementos do modal de atualização de status não encontrados.");
+                        }
+                    }
+
+                    function openEditTaskModal(event) {
+                        const button = event.currentTarget;
+                        const taskId = button.dataset.id;
+                        const title = button.dataset.title;
+                        const description = button.dataset.description;
+                        const atendenteId = button.dataset.atendenteId;
+                        const atendenteName = button.dataset.atendenteName;
+                        const supervisorId = button.dataset.supervisorId;
+                        const supervisorName = button.dataset.supervisorName;
+
+                        // Certifique-se de que esses elementos existem antes de tentar acessá-los
+                        if (editTaskUidInput && editTituloTarefa && editDescricaoTarefa &&
+                            editAtendenteTarefaId && editAtendenteTarefaInput &&
+                            editSupervisorTarefaId && editSupervisorTarefaInput) {
+                            editTaskUidInput.value = taskId;
+                            editTituloTarefa.value = title;
+                            editDescricaoTarefa.value = description;
+                            editAtendenteTarefaId.value = atendenteId;
+                            editAtendenteTarefaInput.value = atendenteName;
+                            editSupervisorTarefaId.value = supervisorId;
+                            editSupervisorTarefaInput.value = supervisorName;
+                            openModal(editTaskModal);
+                        } else {
+                            console.error("ERRO: Elementos do modal de edição de tarefa não encontrados.");
+                        }
+                    }
+
+                    async function confirmAndDeleteTask(event) {
+                        const button = event.currentTarget;
+                        const taskId = button.dataset.id;
+                        if (confirm('Tem certeza que deseja excluir a tarefa ' + taskId + '? Esta ação é irreversível.')) {
+                            try {
+                                const response = await authenticatedFetch(`${BACKEND_API_URL}/api/tarefa/delete/${taskId}`, { method: 'DELETE' });
+                                if (response.ok) {
+                                    alert('Tarefa excluída com sucesso!');
+                                    window.location.reload();
+                                } else {
+                                    const errorData = await response.json();
+                                    alert('Erro ao excluir tarefa: ' + (errorData.message || response.statusText));
+                                    console.error('Detalhes do erro na exclusão de tarefa:', errorData);
+                                }
+                            } catch (error) {
+                                console.error('Erro na requisição de exclusão de tarefa:', error);
+                                alert('Erro de conexão ao excluir tarefa.');
+                            }
+                        }
+                    }
+
+                    // Função para (re)anexar listeners aos botões de tarefas (útil após re-renderização)
+                    function attachTaskButtonListeners() {
+                        document.querySelectorAll('.uuid-copy-button').forEach(button => {
+                            button.removeEventListener('click', copyUuidToClipboard); // Removendo para evitar duplicação
+                            button.addEventListener('click', copyUuidToClipboard);
+                        });
+                        // Apenas anexa listeners de atualização de status se o perfil for ATENDENTE
+                        if (userProfile === 'ATENDENTE') {
+                            document.querySelectorAll('.update-status-btn').forEach(button => {
+                                button.removeEventListener('click', openUpdateStatusModal);
+                                button.addEventListener('click', openUpdateStatusModal);
+                            });
+                        }
+                        // Apenas anexa listeners de edição/exclusão se o perfil for SUPERVISOR
+                        if (userProfile === 'SUPERVISOR') {
+                            document.querySelectorAll('.edit-btn').forEach(button => {
+                                button.removeEventListener('click', openEditTaskModal);
+                                button.addEventListener('click', openEditTaskModal);
+                            });
+                            document.querySelectorAll('.delete-btn').forEach(button => {
+                                button.removeEventListener('click', confirmAndDeleteTask);
+                                button.addEventListener('click', confirmAndDeleteTask);
+                            });
+                        }
+                        console.log("DEBUG: Listeners de botões de tarefa re-anexados.");
+                    }
+
+                    function renderTasks(tasks) {
+                        const taskCardsContainer = document.getElementById('task-cards-container');
+                        const noTasksMessage = document.getElementById('no-tasks-message');
+                        const noFilterResultsMessage = document.getElementById('no-filter-results-message');
+
+                        if (!taskCardsContainer) {
+                            console.error("ERROR: #task-cards-container não encontrado na renderTasks.");
+                            return; // Impede erros se o elemento não existir
+                        }
+
+                        taskCardsContainer.innerHTML = ''; // Limpa as tarefas existentes
+                        if (noTasksMessage) noTasksMessage.style.display = 'none'; // Esconde a mensagem padrão
+                        if (noFilterResultsMessage) noFilterResultsMessage.style.display = 'none'; // Esconde a mensagem de filtro
+
+                        if (tasks && tasks.length > 0) {
+                            tasks.forEach(tarefa => {
+                                // Passa o 'userProfile' capturado no início do DOMContentLoaded
+                                taskCardsContainer.insertAdjacentHTML('beforeend', renderTaskCard(tarefa, userProfile));
+                            });
+                            attachTaskButtonListeners(); // Re-anexa listeners
+                            console.log("DEBUG: Funcao renderTasks - Tarefas renderizadas e listeners anexados.");
+                        } else {
+                            if (noFilterResultsMessage) {
+                                noFilterResultsMessage.textContent = "Nenhuma tarefa encontrada com os filtros aplicados.";
+                                noFilterResultsMessage.style.display = 'block';
+                            } else {
+                                taskCardsContainer.innerHTML = '<p>Nenhuma tarefa encontrada com os filtros aplicados.</p>';
+                            }
+                            console.log("DEBUG: Funcao renderTasks - Nenhuma tarefa para renderizar.");
+                        }
+                    }
+
+
+                    // Função auxiliar para requisições autenticadas
+                    async function authenticatedFetch(url, options = {}) {
+                        const token = '<%= user.token %>';
+                        if (!token || token === 'undefined' || token === 'null') {
+                            alert('Sua sessão expirou ou não há token. Por favor, faça login novamente.');
+                            window.location.href = '/logout';
+                            return Promise.reject('No token found');
+                        }
+                        options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+                        const response = await fetch(url, options);
+                        if (response.status === 401) {
+                            alert('Sua sessão expirou ou suas credenciais são inválidas. Faça login novamente.');
+                            window.location.href = '/logout';
+                            return Promise.reject('Unauthorized');
+                        }
+                        return response;
+                    }
+
+                    // --- Lógica para Modais (Referência CONDICIONAL) ---
+                    let createTaskModal; let openCreateTaskButton; let closeCreateTaskButton; let formCriarTarefa;
+                    let createUserModal; let openCreateUserButton; let closeCreateUserButton; let formCriarUsuario;
+                    let updateStatusModal; let closeUpdateStatusButton; let formUpdateStatus; let updateStatusUidInput; let newStatusSelect;
+                    let editTaskModal; let closeEditTaskButton; let formEditTask; let editTaskUidInput;
+                    let editTituloTarefa; let editDescricaoTarefa; let editAtendenteTarefaInput;
+                    let editAtendenteTarefaSuggestions; let editAtendenteTarefaId;
+                    let editSupervisorTarefaInput; let editSupervisorTarefaSuggestions; let editSupervisorTarefaId;
+
+                    if (userProfile === 'SUPERVISOR') {
+                        createTaskModal = document.getElementById('create-task-modal');
+                        openCreateTaskButton = document.getElementById('open-create-task-modal');
+                        closeCreateTaskButton = document.getElementById('close-create-task-modal');
+                        formCriarTarefa = document.getElementById('form-criar-tarefa');
+
+                        editTaskModal = document.getElementById('edit-task-modal');
+                        closeEditTaskButton = document.getElementById('close-edit-task-modal');
+                        formEditTask = document.getElementById('form-edit-task');
+                        editTaskUidInput = document.getElementById('edit-task-uid');
+                        editTituloTarefa = document.getElementById('edit-titulo-tarefa');
+                        editDescricaoTarefa = document.getElementById('edit-descricao-tarefa');
+                        editAtendenteTarefaInput = document.getElementById('edit-atendente-tarefa-input');
+                        editAtendenteTarefaSuggestions = document.getElementById('edit-atendente-tarefa-suggestions');
+                        editAtendenteTarefaId = document.getElementById('edit-atendente-tarefa-id');
+                        editSupervisorTarefaInput = document.getElementById('edit-supervisor-tarefa-input');
+                        editSupervisorTarefaSuggestions = document.getElementById('edit-supervisor-tarefa-suggestions');
+                        editSupervisorTarefaId = document.getElementById('edit-supervisor-tarefa-id');
+
+                        if (openCreateTaskButton) openCreateTaskButton.addEventListener('click', () => openModal(createTaskModal));
+                        if (closeCreateTaskButton) closeCreateTaskButton.addEventListener('click', () => { closeModal(createTaskModal); formCriarTarefa.reset(); });
+                        if (createTaskModal) createTaskModal.addEventListener('click', (e) => { if (e.target === createTaskModal) { closeModal(createTaskModal); formCriarTarefa.reset(); } });
+
+                        if (closeEditTaskButton) closeEditTaskButton.addEventListener('click', () => { closeModal(editTaskModal); formEditTask.reset(); });
+                        if (editTaskModal) editTaskModal.addEventListener('click', (e) => { if (e.target === editTaskModal) { closeModal(editTaskModal); formEditTask.reset(); } });
+                    }
+
+                    if (userProfile === 'GERENTE') {
+                        createUserModal = document.getElementById('create-user-modal');
+                        openCreateUserButton = document.getElementById('open-create-user-modal');
+                        closeCreateUserButton = document.getElementById('close-create-user-modal');
+                        formCriarUsuario = document.getElementById('form-criar-usuario');
+
+                        if (openCreateUserButton) openCreateUserButton.addEventListener('click', () => openModal(createUserModal));
+                        if (closeCreateUserButton) closeCreateUserButton.addEventListener('click', () => { closeModal(createUserModal); formCriarUsuario.reset(); });
+                        if (createUserModal) createUserModal.addEventListener('click', (e) => { if (e.target === createUserModal) { closeModal(createUserModal); formCriarUsuario.reset(); } });
+                    }
+
+                    if (userProfile === 'ATENDENTE') {
+                        updateStatusModal = document.getElementById('update-status-modal');
+                        closeUpdateStatusButton = document.getElementById('close-update-status-modal');
+                        formUpdateStatus = document.getElementById('form-update-status');
+                        updateStatusUidInput = document.getElementById('update-status-uid');
+                        newStatusSelect = document.getElementById('new-status');
+
+                        if (closeUpdateStatusButton) closeUpdateStatusButton.addEventListener('click', () => { closeModal(updateStatusModal); formUpdateStatus.reset(); });
+                        if (updateStatusModal) updateStatusModal.addEventListener('click', (e) => { if (e.target === updateStatusModal) { closeModal(updateStatusModal); formUpdateStatus.reset(); } });
+                    }
+
+                    function openModal(modalElement) {
+                        if (modalElement) {
+                            modalElement.classList.add('active');
+                            document.body.style.overflow = 'hidden';
+                        }
+                    }
+
+                    function closeModal(modalElement) {
+                        if (modalElement) {
+                            modalElement.classList.remove('active');
+                            document.body.style.overflow = '';
+                        }
+                    }
+
+                    // --- Lógica para Autocomplete (ComboBox) ---
+                    // O JSON.parse só deve acontecer UMA VEZ no carregamento da página
+                    // Certifique-se que pageData.usuarios sempre seja um array, mesmo que vazio
+                    const rawUsersData = JSON.parse('<%- JSON.stringify(pageData.usuarios || []) %>');
+                    console.log('DEBUG [layout.ejs - CLIENT]: rawUsersData (vindo do Node.js):', rawUsersData);
+
+                    // Filtrar usuários por cargo (Gerente, Supervisor, Atendente)
+                    const allUsers = {
+                        ATENDENTE: rawUsersData.filter(u => u.perfil === 'ATENDENTE').map(u => ({ id: u.id, nome: u.nome })),
+                        SUPERVISOR: rawUsersData.filter(u => u.perfil === 'SUPERVISOR').map(u => ({ id: u.id, nome: u.nome })),
+                        GERENTE: rawUsersData.filter(u => u.perfil === 'GERENTE').map(u => ({ id: u.id, nome: u.nome }))
+                    };
+                    console.log('DEBUG [layout.ejs - CLIENT]: allUsers.ATENDENTE (depois do filtro e map):', allUsers.ATENDENTE);
+                    console.log('DEBUG [layout.ejs - CLIENT]: allUsers.SUPERVISOR (depois do filtro e map):', allUsers.SUPERVISOR);
+                    console.log('DEBUG [layout.ejs - CLIENT]: allUsers.GERENTE (depois do filtro e map):', allUsers.GERENTE);
+
+
+                    function setupAutocomplete(inputElement, suggestionsContainer, hiddenIdInput, dataList, onSelect = () => {}) {
+                        let currentFocus = -1;
+                        // Find the clear button associated with this input. It's the next sibling.
+                        const clearButton = inputElement.nextElementSibling; 
+
+                        // Function to toggle the clear button visibility
+                        function toggleClearButton() {
+                            if (clearButton && inputElement.value.length > 0) {
+                                clearButton.style.display = 'block';
+                            } else if (clearButton) {
+                                clearButton.style.display = 'none';
+                            }
+                        }
+
+                        function showSuggestions(filterText) {
+                            suggestionsContainer.innerHTML = '';
+                            suggestionsContainer.classList.remove('active');
+                            const currentFilterText = filterText.toLowerCase();
+                            const filteredData = dataList.filter(item => item.nome.toLowerCase().includes(currentFilterText));
+
+                            if (currentFilterText.length === 0 && dataList.length > 0) {
+                                // Only show all suggestions if input is empty, and there are items
+                                dataList.forEach(item => createSuggestionItem(item));
+                                suggestionsContainer.classList.add('active');
+                            } else if (currentFilterText.length > 0 && filteredData.length > 0) {
+                                filteredData.forEach((item, index) => {
+                                    createSuggestionItem(item);
+                                });
+                                suggestionsContainer.classList.add('active');
+                            } else if (currentFilterText.length > 0 && filteredData.length === 0) {
+                                hiddenIdInput.value = ''; // Clear hidden ID if no match for current text
+                                const noResults = document.createElement('div');
+                                noResults.textContent = 'Nenhum resultado';
+                                noResults.style.color = '#888';
+                                noResults.style.padding = '10px';
+                                suggestionsContainer.appendChild(noResults);
+                                suggestionsContainer.classList.add('active');
+                            }
+                            currentFocus = -1;
+                            toggleClearButton(); // Update clear button visibility
+                        }
+
+                        function createSuggestionItem(item) {
+                            const suggestionDiv = document.createElement('div');
+                            suggestionDiv.textContent = item.nome;
+                            suggestionDiv.setAttribute('data-id', item.id);
+                            suggestionDiv.setAttribute('data-name', item.nome);
+                            suggestionDiv.addEventListener('click', function() {
+                                inputElement.value = this.getAttribute('data-name');
+                                hiddenIdInput.value = this.getAttribute('data-id');
+                                suggestionsContainer.classList.remove('active');
+                                currentFocus = -1;
+                                toggleClearButton(); // Update clear button visibility
+                                onSelect(this.getAttribute('data-id'), this.getAttribute('data-name'));
+                            });
+                            suggestionsContainer.appendChild(suggestionDiv);
+                        }
+
+                        inputElement.addEventListener('input', function() {
+                            const currentName = this.value;
+                            const foundItem = dataList.find(item => item.nome === currentName);
+                            // If text input doesn't match an existing item, clear the hidden ID.
+                            // This ensures an invalid or partially typed name doesn't send an old ID.
+                            if (!foundItem || (foundItem && foundItem.id != hiddenIdInput.value)) {
+                                hiddenIdInput.value = '';
+                            }
+                            showSuggestions(this.value);
+                            toggleClearButton(); // Update clear button visibility
+                        });
+
+                        inputElement.addEventListener('keydown', function(e) {
+                            let x = suggestionsContainer.querySelectorAll('div');
+                            if (e.key === 'ArrowDown') {
+                                currentFocus++;
+                                addActive(x);
+                                e.preventDefault();
+                            } else if (e.key === 'ArrowUp') {
+                                currentFocus--;
+                                addActive(x);
+                                e.preventDefault();
+                            } else if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (currentFocus > -1) {
+                                    if (x[currentFocus]) {
+                                        x[currentFocus].click();
+                                    }
+                                } else if (this.value && hiddenIdInput.value === '') {
+                                    // If input has text but no item is selected (e.g., typed but not clicked)
+                                    // and there are suggestions, click the first one.
+                                    if (x.length > 0) {
+                                        x[0].click();
+                                    }
+                                }
+                            }
+                        });
+
+                        function addActive(x) {
+                            if (!x || x.length === 0) return false;
+                            removeActive(x);
+                            if (currentFocus >= x.length) currentFocus = 0;
+                            if (currentFocus < 0) currentFocus = (x.length - 1);
+                            x[currentFocus].classList.add('selected');
+                            x[currentFocus].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                        }
+
+                        function removeActive(x) {
+                            for (let i = 0; i < x.length; i++) {
+                                x[i].classList.remove('selected');
+                            }
+                        }
+
+                        inputElement.addEventListener('blur', function() {
+                            // Delay hiding suggestions and checking input to allow click on suggestion or clear button
+                            setTimeout(() => {
+                                suggestionsContainer.classList.remove('active');
+                                // If the input has text but no valid ID is selected (meaning it's not a valid autocomplete selection)
+                                // then clear the text. This prevents submitting partial/invalid names.
+                                if (this.value !== '' && hiddenIdInput.value === '') {
+                                    const exactMatch = dataList.find(item => item.nome.toLowerCase() === this.value.toLowerCase());
+                                    if (!exactMatch) { // Only clear if there's no exact match
+                                        this.value = '';
+                                        // Also clear the hidden ID if no exact match on blur
+                                        hiddenIdInput.value = '';
+                                    }
+                                }
+                                toggleClearButton(); // Update clear button visibility after blur actions
+                            }, 100); // Small delay
+                        });
+
+                        inputElement.addEventListener('focus', function() {
+                            // Show all suggestions when input is focused, unless there's already selected text
+                            if (this.value === '') {
+                                showSuggestions('');
+                            } else {
+                                // If there's text, re-filter based on it
+                                showSuggestions(this.value);
+                            }
+                            toggleClearButton(); // Ensure 'x' is visible if there's text on focus
+                        });
+
+                        inputElement.addEventListener('change', function() {
+                            // This event fires when the input's value commits (e.g., tab out)
+                            if (this.value === '') {
+                                hiddenIdInput.value = '';
+                            }
+                            toggleClearButton();
+                        });
+
+                        // Event listener for the clear button
+                        if (clearButton) {
+                            clearButton.addEventListener('click', function() {
+                                inputElement.value = '';
+                                hiddenIdInput.value = '';
+                                suggestionsContainer.classList.remove('active');
+                                inputElement.focus(); // Keep focus on the input after clearing
+                                toggleClearButton(); // Hide the 'x'
+                            });
+                        }
+
+                        // Initial check for clear button visibility when element is first setup
+                        toggleClearButton();
+
+                        // Define the initial value of the input if the hiddenIdInput already has a value
+                        if (hiddenIdInput.value) {
+                            const selectedItem = dataList.find(item => item.id == hiddenIdInput.value);
+                            if (selectedItem) {
+                                inputElement.value = selectedItem.nome;
+                                toggleClearButton(); // Ensure 'x' is visible if pre-filled
+                            }
+                        }
+                    } // End of setupAutocomplete function
+
+
+                    // --- Initializations of Autocompletes with Permission Logic ---
+
+                    // Only initialize if the logged in user is SUPERVISOR or GERENTE (for task filtering)
+                    if (userProfile === 'SUPERVISOR' || userProfile === 'GERENTE') {
+                        const filterUserTypeSelect = document.getElementById('filter-user-type');
+                        const filterUserInput = document.getElementById('filter-user-input');
+                        const filterUserSuggestions = document.getElementById('filter-user-suggestions');
+                        const filterUserId = document.getElementById('filter-user-id');
+                        const filterUserNameHidden = document.getElementById('filter-user-name-hidden');
+
+                        if (filterUserInput && filterUserSuggestions && filterUserId) {
+                            // Initialize filter autocomplete with the COMPLETE list of users (excluding managers)
+                            const filterableUsersInitial = rawUsersData.filter(u => u.perfil === 'ATENDENTE' || u.perfil === 'SUPERVISOR').map(u => ({ id: u.id, nome: u.nome }));
+                            console.log('DEBUG [layout.ejs]: Initializing autocomplete for user filter (ATTENDANT/SUPERVISOR) with initial list:', filterableUsersInitial);
+                            setupAutocomplete(filterUserInput, filterUserSuggestions, filterUserId, filterableUsersInitial, (id, name) => {
+                                filterUserNameHidden.value = name;
+                            });
+
+                            // Add listener for the filter user type dropdown
+                            filterUserTypeSelect.addEventListener('change', () => {
+                                console.log("DEBUG: Filter user type changed to:", filterUserTypeSelect.value);
+                                filterUserInput.value = ''; // Clear name field when type changes
+                                filterUserId.value = '';
+                                filterUserNameHidden.value = '';
+                                const selectedUserType = filterUserTypeSelect.value;
+                                let filteredAutocompleteList = [];
+
+                                if (selectedUserType === 'atendente') {
+                                    filteredAutocompleteList = allUsers.ATENDENTE; // List ONLY attendants
+                                    console.log("DEBUG: Autocomplete list for Attendant:", filteredAutocompleteList);
+                                } else if (selectedUserType === 'supervisor') {
+                                    filteredAutocompleteList = allUsers.SUPERVISOR; // List ONLY supervisors
+                                    console.log("DEBUG: Autocomplete list for Supervisor:", filteredAutocompleteList);
+                                } else {
+                                    // If "Select Type" is chosen, list all (attendants and supervisors)
+                                    filteredAutocompleteList = rawUsersData.filter(u => u.perfil === 'ATENDENTE' || u.perfil === 'SUPERVISOR').map(u => ({ id: u.id, nome: u.nome }));
+                                    console.log("DEBUG: Autocomplete list for All (attendants and supervisors):", filteredAutocompleteList);
+                                }
+                                // Re-initialize autocomplete with the list filtered by type
+                                setupAutocomplete(filterUserInput, filterUserSuggestions, filterUserId, filteredAutocompleteList, (id, name) => {
+                                    filterUserNameHidden.value = name;
+                                });
+                                // Show suggestions immediately when type changes
+                                filterUserInput.focus();
+                                filterUserInput.dispatchEvent(new Event('input'));
+                            });
+                        }
+                    }
+
+                    // Initialize autocomplete fields for Task Creation (SUPERVISOR ONLY)
+                    if (userProfile === 'SUPERVISOR') { // Supervisor creates tasks
+                        const atendenteInput = document.getElementById('atendente-tarefa-input');
+                        const atendenteSuggestions = document.getElementById('atendente-tarefa-suggestions');
+                        const atendenteId = document.getElementById('atendente-tarefa-id');
+                        if (atendenteInput && atendenteSuggestions && atendenteId) {
+                            console.log('DEBUG [layout.ejs]: Initializing autocomplete for attendant (CREATE TASK) with list:', allUsers.ATENDENTE);
+                            setupAutocomplete(atendenteInput, atendenteSuggestions, atendenteId, allUsers.ATENDENTE, (id, name) => {
+                                // Additional logic specific to this input if needed
+                            });
+                        }
+                    }
+
+                    // Initialize autocomplete fields for Task EDITING (SUPERVISOR ONLY)
+                    if (userProfile === 'SUPERVISOR') { // Supervisor edits tasks
+                        const editAtendenteTarefaInput = document.getElementById('edit-atendente-tarefa-input');
+                        const editAtendenteTarefaSuggestions = document.getElementById('edit-atendente-tarefa-suggestions');
+                        const editAtendenteTarefaId = document.getElementById('edit-atendente-tarefa-id');
+                        if (editAtendenteTarefaInput && editAtendenteTarefaSuggestions && editAtendenteTarefaId) {
+                            console.log('DEBUG [layout.ejs]: Initializing autocomplete for attendant editing with list:', allUsers.ATENDENTE);
+                            setupAutocomplete(editAtendenteTarefaInput, editAtendenteTarefaSuggestions, editAtendenteTarefaId, allUsers.ATENDENTE, (id, name) => {
+                                // Additional logic specific to this input if needed
+                            });
+                        }
+                        const editSupervisorTarefaInput = document.getElementById('edit-supervisor-tarefa-input');
+                        const editSupervisorTarefaSuggestions = document.getElementById('edit-supervisor-tarefa-suggestions');
+                        const editSupervisorTarefaId = document.getElementById('edit-supervisor-tarefa-id');
+                        if (editSupervisorTarefaInput && editSupervisorTarefaSuggestions && editSupervisorTarefaId) {
+                            console.log('DEBUG [layout.ejs]: Initializing autocomplete for supervisor editing with list:', allUsers.SUPERVISOR);
+                            setupAutocomplete(editSupervisorTarefaInput, editSupervisorTarefaSuggestions, editSupervisorTarefaId, allUsers.SUPERVISOR, (id, name) => {
+                                // Additional logic specific to this input if needed
+                            });
+                        }
+                    }
+
+                    // Logic for Create Task form submission (inside modal)
+                    if (formCriarTarefa) { // Only try to add listener if modal was rendered (i.e., if profile is SUPERVISOR)
+                        formCriarTarefa.addEventListener('submit', async function(event) {
+                            event.preventDefault();
+                            console.log("DEBUG: Create task form submitted.");
+
+                            const titulo = document.getElementById('titulo-tarefa').value;
+                            const descricao = document.getElementById('descricao-tarefa').value;
+                            const atendenteId = document.getElementById('atendente-tarefa-id').value; // Value is a string
+
+                            // Add the logged-in supervisor's ID for task creation
+                            // ATTENTION: This assumes the logged-in user (supervisor) is the task's supervisor.
+                            // If task creation allows choosing the supervisor, supervisorId should come from a form field.
+                            const supervisorId = '<%= user.id %>'; // Get logged-in supervisor's ID from EJS
+
+                            console.log(`DEBUG: Form data (Creation) BEFORE VALIDATION: Title=${titulo}, Description=${descricao}, AttendantId='${atendenteId}', SupervisorId='${supervisorId}'`);
+
+                            // More robust validation for atendenteId
+                            if (!atendenteId || isNaN(atendenteId) || parseInt(atendenteId) <= 0) {
+                                alert('Por favor, selecione um atendente válido da lista.');
+                                console.error("ERROR: Invalid or empty Attendant ID during creation.");
+                                return;
+                            }
+                            // Robust validation for supervisorId
+                            if (!supervisorId || isNaN(supervisorId) || parseInt(supervisorId) <= 0) {
+                                alert('Error: Invalid logged-in supervisor ID for task creation.');
+                                console.error("ERROR: Invalid or empty Supervisor ID during creation. Value received: '" + supervisorId + "'");
+                                return;
+                            }
+                            
+                            try {
+                                console.log(`DEBUG: Making POST request to ${BACKEND_API_URL}/api/tarefa`);
+                                console.log(`DEBUG: Payload sent for creation: ${JSON.stringify({
+                                    titulo: titulo,
+                                    descricao: descricao,
+                                    atendenteId: parseInt(atendenteId), // Convert to number before sending
+                                    supervisorId: parseInt(supervisorId) // Convert to number before sending
+                                })}`);
+                                const response = await authenticatedFetch(`${BACKEND_API_URL}/api/tarefa`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        titulo: titulo,
+                                        descricao: descricao,
+                                        atendenteId: parseInt(atendenteId),
+                                        supervisorId: parseInt(supervisorId)
+                                    })
+                                });
+
+                                console.log(`DEBUG: Backend response for task creation. Status: ${response.status}`);
+                                const responseText = await response.text();
+                                console.log(`DEBUG: Raw backend response for task creation: ${responseText}`);
+
+                                let data;
+                                try {
+                                    data = JSON.parse(responseText);
+                                    console.log(`DEBUG: Parsed JSON response:`, data);
+                                } catch (jsonError) {
+                                    console.error("ERROR: Failed to parse JSON from task creation response:", jsonError, "Raw response:", responseText);
+                                    alert("Error: Invalid server response when creating task. Check console.");
+                                    return;
+                                }
+
+
+                                if (response.ok) {
+                                    alert('Tarefa criada com sucesso! ID: ' + (data.uid || 'N/A'));
+                                    formCriarTarefa.reset();
+                                    closeModal(createTaskModal);
+                                    window.location.reload();
+                                } else {
+                                    const errorMessage = data.message || (data.errors && data.errors.map(e => e.defaultMessage).join(', ')) || response.statusText;
+                                    alert('Erro ao criar tarefa: ' + errorMessage);
+                                    console.error('Details of error in task creation:', data);
+                                }
+                            } catch (error) {
+                                console.error('ERROR: Network error in task creation request:', error);
+                                alert('There was a problem connecting to the server to create the task.');
+                            }
+                        });
+                    }
+
+                    // Logic for Create User form submission (inside modal)
+                    if (formCriarUsuario) { // Only try to add listener if modal was rendered (i.e., if profile is GERENTE)
+                        formCriarUsuario.addEventListener('submit', async function(event) {
+                            event.preventDefault();
+                            console.log("DEBUG: User creation form submitted."); // NEW LOG
+
+                            const nome = document.getElementById('nome-usuario').value;
+                            const email = document.getElementById('email-usuario').value;
+                            const senha = document.getElementById('senha-usuario').value;
+                            const perfil = document.getElementById('perfil-novo-usuario').value; // Here 'perfil' is used in the form
+                            const cpf = document.getElementById('cpf-novo-usuario').value;
+                            const numero = document.getElementById('numero-novo-usuario').value;
+
+                            console.log(`DEBUG: Form data (User): Name=${nome}, Email=${email}, Profile=${perfil}`); // NEW LOG
+
+                            try {
+                                console.log(`DEBUG: Making POST request to ${BACKEND_API_URL}/api/funcionario`); // NEW LOG
+                                const response = await authenticatedFetch(`${BACKEND_API_URL}/api/funcionario`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    // Sending 'cargo' as the field name to the backend (FuncionarioCreateDTO)
+                                    body: JSON.stringify({ nome, email, senha, cargo: perfil, cpf: cpf, numero: numero })
+                                });
+
+                                console.log(`DEBUG: Backend response for user creation. Status: ${response.status}`); // NEW LOG
+                                const responseText = await response.text();
+                                console.log(`DEBUG: Raw backend response for user creation: ${responseText}`); // NEW LOG
+
+                                let data;
+                                try {
+                                    data = JSON.parse(responseText);
+                                    console.log(`DEBUG: Parsed JSON response:`, data); // NEW LOG
+                                } catch (jsonError) {
+                                    console.error("ERROR: Failed to parse JSON from user creation response:", jsonError, "Raw response:", responseText); // NEW LOG
+                                    alert("Error: Invalid server response when creating user. Check console.");
+                                    return;
+                                }
+
+
+                                if (response.ok) {
+                                    alert('Usuário criado com sucesso! ID: ' + data.id);
+                                    formCriarUsuario.reset();
+                                    closeModal(createUserModal);
+                                    window.location.reload();
+                                } else {
+                                    alert('Erro ao criar usuário: ' + (data.message || response.statusText));
+                                }
+                            } catch (error) {
+                                console.error('ERROR: Network error in user creation request:', error);
+                                alert('There was a problem connecting to the server to create the user.');
+                            }
+                        });
+                    }
+
+                    // Logic for Update Task Status form submission
+                    if (formUpdateStatus) { // Only try to add listener if modal was rendered (i.e., if profile is ATENDENTE)
+                        formUpdateStatus.addEventListener('submit', async function(event) {
+                            event.preventDefault();
+                            console.log("DEBUG: Status update form submitted."); // NEW LOG
+
+                            const taskId = updateStatusUidInput.value;
+                            const newStatus = newStatusSelect.value;
+
+                            console.log(`DEBUG: Updating status for Task ID=${taskId}, New Status=${newStatus}`); // NEW LOG
+
+                            try {
+                                console.log(`DEBUG: Making PATCH request to ${BACKEND_API_URL}/api/tarefa/update/${taskId}`); // NEW LOG
+                                const response = await authenticatedFetch(`${BACKEND_API_URL}/api/tarefa/update/${taskId}`, {
+                                    method: 'PATCH',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ status: newStatus })
+                                });
+
+                                console.log(`DEBUG: Backend response for status update. Status: ${response.status}`); // NEW LOG
+                                const responseText = await response.text();
+                                console.log(`DEBUG: Raw backend response for status update: ${responseText}`); // NEW LOG
+
+                                let data;
+                                try {
+                                    data = JSON.parse(responseText);
+                                    console.log(`DEBUG: Parsed JSON response:`, data); // NEW LOG
+                                } catch (jsonError) {
+                                    console.error("ERROR: Failed to parse JSON from status update response:", jsonError, "Raw response:", responseText); // NEW LOG
+                                    alert("Error: Invalid server response when updating status. Check console.");
+                                    return;
+                                }
+
+                                if (response.ok) {
+                                    alert('Status da tarefa atualizado com sucesso!');
+                                    closeModal(updateStatusModal);
+                                    window.location.reload();
+                                } else {
+                                    const errorMessage = data.message || response.statusText;
+                                    alert('Erro ao atualizar status: ' + errorMessage);
+                                    console.error('Details of error in status update:', data);
+                                }
+                            } catch (error) {
+                                console.error('ERROR: Network error in status update request:', error);
+                                alert('There was a problem connecting to the server to update the status.');
+                            }
+                        });
+                    }
+
+                    // Logic for General Task Editing form submission
+                    if (formEditTask) { // Only try to add listener if modal was rendered (i.e., if profile is SUPERVISOR)
+                        formEditTask.addEventListener('submit', async function(event) {
+                            event.preventDefault();
+                            console.log("DEBUG: General task editing form submitted."); // NEW LOG
+
+                            const taskId = editTaskUidInput.value;
+                            const titulo = editTituloTarefa.value;
+                            const descricao = editDescricaoTarefa.value;
+                            const atendenteId = editAtendenteTarefaId.value; // Value is a string
+                            const supervisorId = editSupervisorTarefaId.value; // Value is a string
+
+                            console.log(`DEBUG: Form data (General Edit) BEFORE VALIDATION: ID=${taskId}, Title=${titulo}, Description=${descricao}, AttendantId='${atendenteId}', SupervisorId='${supervisorId}'`); // NEW LOG
+
+                            // More robust validation for atendenteId
+                            if (!atendenteId || isNaN(atendenteId) || parseInt(atendenteId) <= 0) {
+                                alert('Por favor, selecione um atendente válido da lista.');
+                                console.error("ERROR: Invalid or empty Attendant ID in general edit. Value received: '" + atendenteId + "'"); // NEW LOG
+                                return;
+                            }
+                            // More robust validation for supervisorId
+                            if (!supervisorId || isNaN(supervisorId) || parseInt(supervisorId) <= 0) {
+                                alert('Por favor, selecione um supervisor válido da lista. O supervisor é um campo obrigatório.');
+                                console.error("ERROR: Invalid or empty Supervisor ID in general edit. Value received: '" + supervisorId + "'"); // NEW LOG
+                                return;
+                            }
+
+                            try {
+                                console.log(`DEBUG: Making PATCH request to ${BACKEND_API_URL}/api/tarefa/update-full/${taskId}`); // NEW LOG
+                                console.log(`DEBUG: Payload sent for editing: ${JSON.stringify({
+                                    titulo: titulo,
+                                    descricao: descricao,
+                                    atendenteId: parseInt(atendenteId), // Convert to number before sending
+                                    supervisorId: parseInt(supervisorId) // Convert to number before sending
+                                })}`);
+                                const response = await authenticatedFetch(`${BACKEND_API_URL}/api/tarefa/update-full/${taskId}`, {
+                                    method: 'PATCH',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        titulo: titulo,
+                                        descricao: descricao,
+                                        atendenteId: parseInt(atendenteId),
+                                        supervisorId: parseInt(supervisorId)
+                                    })
+                                });
+
+                                console.log(`DEBUG: Backend response for general task editing. Status: ${response.status}`); // NEW LOG
+                                const responseText = await response.text();
+                                console.log(`DEBUG: Raw backend response for general task editing: ${responseText}`); // NEW LOG
+
+                                let data;
+                                try {
+                                    data = JSON.parse(responseText);
+                                    console.log(`DEBUG: Parsed JSON response:`, data); // NEW LOG
+                                } catch (jsonError) {
+                                    console.error("ERROR: Failed to parse JSON from general task editing response:", jsonError, "Raw response:", responseText); // NEW LOG
+                                    alert("Error: Invalid server response when editing task. Check console.");
+                                    return;
+                                }
+
+
+                                if (response.ok) {
+                                    alert('Tarefa atualizada com sucesso!');
+                                    closeModal(editTaskModal);
+                                    window.location.reload();
+                                } else {
+                                    const errorMessage = data.message || (data.errors && data.errors.map(e => e.defaultMessage).join(', ')) || response.statusText;
+                                    alert('Erro ao atualizar tarefa: ' + errorMessage);
+                                    console.error('Details of error in task update:', data);
+                                }
+                            } catch (error) {
+                                console.error('ERROR: Network error in general task update request:', error);
+                                alert('There was a problem connecting to the server to update the task.');
+                            }
+                        });
+                    }
+                    // Logic to apply filter
+                    const applyFilterBtn = document.getElementById('apply-filter-btn');
+                    if (applyFilterBtn) { // Only try to add listener if button exists (visible by permission)
+                        applyFilterBtn.addEventListener('click', async () => {
+                            console.log("DEBUG: 'Apply Filter' button clicked.");
+
+                            const filterUserTypeSelect = document.getElementById('filter-user-type');
+                            const filterUserInput = document.getElementById('filter-user-input');
+                            const filterUserId = document.getElementById('filter-user-id'); // Get the hidden user ID
+                            const filterStatusSelect = document.getElementById('filter-status');
+
+                            const userType = filterUserTypeSelect ? filterUserTypeSelect.value : ''; // Not directly used in API call, mostly for autocomplete filtering
+                            const selectedUserId = filterUserId ? filterUserId.value : ''; // Use the hidden user ID for API
+                            const status = filterStatusSelect ? filterStatusSelect.value : '';
+
+                            console.log(`DEBUG: Filter parameters: userId='${selectedUserId}', status='${status}'`);
+
+                            let filterUrl = `${BACKEND_API_URL}/api/tarefa`; // Default to all tasks
+                            const queryParams = new URLSearchParams();
+
+                            // Use assignedToId if an ID is selected AND the text box is not empty
+                            // This prevents a filter ID from being sent if the user typed something and then deleted it
+                            // We add isNaN to ensure the ID is a number
+                            if (selectedUserId && filterUserInput.value && !isNaN(selectedUserId) && parseInt(selectedUserId) > 0) {
+                                queryParams.append('assignedToId', selectedUserId); // Assuming backend accepts 'assignedToId'
+                            } else if (selectedUserId && (!filterUserInput.value || isNaN(selectedUserId) || parseInt(selectedUserId) <= 0)) {
+                                // If the user selected something but then typed something invalid or cleared the text box
+                                // AND the hidden ID does not correspond to a valid number, do not send the ID.
+                                console.log("DEBUG: User ID for filter invalid or cleared. Ignoring user filter.");
+                            }
+
+                            if (status) { // If a status is selected
+                                queryParams.append('status', status);
+                            }
+
+                            if (queryParams.toString()) {
+                                filterUrl = `${BACKEND_API_URL}/api/tarefa/filter?${queryParams.toString()}`;
+                                console.log(`DEBUG: Combined or single filter selected. Constructed URL: ${filterUrl}`);
+                            } else {
+                                console.log("DEBUG: No valid filter selected. Fetching all tasks.");
+                                // If no filters are applied, the URL remains the default `/api/tarefa`
+                            }
+
+                            try {
+                                console.log(`DEBUG: Making fetch request to: ${filterUrl}`);
+                                const response = await authenticatedFetch(filterUrl, {
+                                    headers: { 'Authorization': `Bearer <%= user.token %>` }
+                                });
+                                console.log(`DEBUG: Filter response received. Status: ${response.status}`);
+
+                                if (response.ok) {
+                                    let filteredTasks = await response.json();
+                                    console.log("DEBUG: Filtered tasks received from API:", filteredTasks);
+
+                                    const taskCardsContainer = document.getElementById('task-cards-container');
+                                    const noTasksMessage = document.getElementById('no-tasks-message');
+                                    const noFilterResultsMessage = document.getElementById('no-filter-results-message');
+
+                                    taskCardsContainer.innerHTML = '';
+                                    if (noTasksMessage) noTasksMessage.style.display = 'none';
+                                    if (noFilterResultsMessage) noFilterResultsMessage.style.display = 'none';
+
+                                    if (filteredTasks && filteredTasks.length > 0) {
+                                        filteredTasks.forEach(tarefa => {
+                                            taskCardsContainer.insertAdjacentHTML('beforeend', renderTaskCard(tarefa, userProfile));
+                                        });
+                                        attachTaskButtonListeners();
+                                        console.log("DEBUG: renderTasks function/UI updated with new tasks.");
+                                    } else {
+                                        if (noFilterResultsMessage) {
+                                            noFilterResultsMessage.textContent = "Nenhuma tarefa encontrada com os filtros aplicados.";
+                                            noFilterResultsMessage.style.display = 'block';
+                                        } else {
+                                            taskCardsContainer.innerHTML = '<p>Nenhuma tarefa encontrada com os filtros aplicados.</p>';
+                                        }
+                                        console.log("DEBUG: renderTasks function - No tasks to render.");
+                                    }
+                                } else if (response.status === 404) {
+                                    console.log("DEBUG: No tasks found for applied filters (API returned 404).");
+                                    renderTasks([]); // No tasks found
+                                } else {
+                                    const errorText = await response.text();
+                                    console.error(`ERROR: Error applying filter: ${response.status} - ${errorText}`);
+                                    alert('Error applying filter. Check console.');
+                                    renderTasks([]);
+                                }
+                            } catch (error) {
+                                console.error('ERROR: Network error when applying filter:', error);
+                                alert('Connection error when applying filter.');
+                                renderTasks([]);
+                            }
+                        });
+                    } else {
+                        console.log("DEBUG: 'Apply Filter' button NOT found or hidden by EJS permission.");
+                    }
+
+                    // Logic to clear filter
+                    const clearFilterBtn = document.getElementById('clear-filter-btn');
+                    if (clearFilterBtn) {
+                        clearFilterBtn.addEventListener('click', async () => {
+                            console.log("DEBUG: 'Clear Filter' button clicked. Fetching all tasks.");
+                            // Clear all filter related fields
+                            document.getElementById('filter-user-type').value = '';
+                            document.getElementById('filter-user-input').value = '';
+                            document.getElementById('filter-user-id').value = '';
+                            document.getElementById('filter-user-name-hidden').value = '';
+                            document.getElementById('filter-status').value = '';
+
+                            // Manually hide the clear button for the filter input after clearing
+                            const filterUserInputClearButton = document.getElementById('filter-user-input').nextElementSibling;
+                            if (filterUserInputClearButton && filterUserInputClearButton.classList.contains('autocomplete-clear')) {
+                                filterUserInputClearButton.style.display = 'none';
+                            }
+
+                            try {
+                                const response = await authenticatedFetch(`${BACKEND_API_URL}/api/tarefa`, {
+                                    headers: { 'Authorization': `Bearer <%= user.token %>` }
+                                });
+                                if (response.ok) {
+                                    const allTasks = await response.json();
+                                    console.log("DEBUG: Original tasks reloaded:", allTasks);
+                                    renderTasks(allTasks);
+                                    console.log("DEBUG: Task list cleared and re-rendered with all tasks.");
+                                } else {
+                                    console.error(`ERROR: Error clearing filter and fetching all tasks: ${response.status} - ${await response.text()}`);
+                                    alert('Error loading all tasks after clearing filter.');
+                                    renderTasks([]);
+                                }
+                            } catch (error) {
+                                console.error('ERROR: Network error when clearing filter:', error);
+                                alert('Connection error when clearing filter.');
+                                renderTasks([]);
+                            }
+                        });
+                    } else {
+                        console.log("DEBUG: 'Clear Filter' button NOT found.");
+                    }
+
+                    // Initial call to attach listeners to already rendered task buttons
+                    attachTaskButtonListeners();
+
+                }); // End of DOMContentLoaded
+            </script>
+        </main>
+    </div>
+
+    <%# Modais (fora da main para facilitar o posicionamento de tela cheia) %>
+
+    <%# Modal de Criar Tarefa %>
+    <% if (profile === 'SUPERVISOR') { %>
+    <div id="create-task-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="close-create-task-modal">&times;</span>
+            <h2>Criar Nova Tarefa</h2>
+            <p>Preencha os campos abaixo para criar uma nova tarefa.</p>
+            <form id="form-criar-tarefa">
+                <label for="titulo-tarefa">Título da Tarefa:</label>
+                <input type="text" id="titulo-tarefa" name="titulo" required><br><br>
+
+                <label for="descricao-tarefa">Descrição:</label>
+                <textarea id="descricao-tarefa" name="descricao" rows="4"></textarea><br><br>
+
+                <label for="atendente-tarefa-input">Atendente:</label>
+                <div class="autocomplete-container">
+                    <input type="text" id="atendente-tarefa-input" class="autocomplete-input" placeholder="Digite para buscar atendente" required>
+                    <button type="button" class="autocomplete-clear" style="margin-right: 10px; margin-bottom: 10px;">&times;</button>
+                    <div id="atendente-tarefa-suggestions" class="autocomplete-suggestions"></div>
+                    <input type="hidden" id="atendente-tarefa-id" name="atendenteId">
+                </div><br><br>
+
+                <button type="submit">Criar Tarefa</button>
+            </form>
+        </div>
+    </div>
+    <% } %>
+
+    <%# Modal de Criar Usuário (visível apenas para Gerente) %>
+    <% if (profile === 'GERENTE') { %>
+    <div id="create-user-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="close-create-user-modal">&times;</span>
+            <h2>Criar Novo Usuário</h2>
+            <p>Preencha os campos abaixo para adicionar um novo usuário ao sistema.</p>
+            <form id="form-criar-usuario">
+                <label for="nome-usuario">Nome Completo:</label>
+                <input type="text" id="nome-usuario" name="nome" required><br><br>
+
+                <label for="email-usuario">E-mail:</label>
+                <input type="email" id="email-usuario" name="email" required><br><br>
+
+                <label for="senha-usuario">Senha:</label>
+                <input type="password" id="senha-usuario" name="senha" required><br><br>
+
+                <label for="perfil-novo-usuario">Perfil:</label>
+                <select id="perfil-novo-usuario" name="perfil">
+                    <option value="ATENDENTE">Atendente</option>
+                    <option value="SUPERVISOR">Supervisor</option>
+                    <option value="GERENTE">Gerente</option>
+                </select><br><br>
+
+                <label for="cpf-novo-usuario">CPF:</label>
+                <input type="text" id="cpf-novo-usuario" placeholder="Somente números" name="cpf" required pattern="\d{11}" title="CPF deve ter 11 dígitos numéricos"><br><br>
+
+                <label for="numero-novo-usuario">Número de Telefone:</label>
+                <input type="text" id="numero-novo-usuario" placeholder="Somente números" name="numero" required pattern="\d{10,11}" title="Número deve ter 10 ou 11 dígitos numéricos"><br><br>
+
+                <button type="submit">Criar Usuário</button>
+            </form>
+        </div>
+    </div>
+    <% } %>
+
+    <%# NOVO MODAL: Atualizar Status da Tarefa (para Atendentes) %>
+    <% if (profile === 'ATENDENTE') { %>
+    <div id="update-status-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="close-update-status-modal">&times;</span>
+            <h2>Atualizar Status da Tarefa</h2>
+            <p>Selecione o novo status para a tarefa.</p>
+            <form id="form-update-status">
+                <input type="hidden" id="update-status-uid" name="uid">
+
+                <label for="new-status">Novo Status:</label>
+                <select id="new-status" name="status" class="status-select" required>
+                    <option value="">Selecione um status</option>
+                    <option value="EM_ANDAMENTO">Em Andamento</option>
+                    <option value="CONCLUIDO">Concluído</option>
+                    <%# Adicionei PENDENTE e ATRIBUIDO aqui para que o atendente possa mudar para eles se necessário %>
+                    <option value="ATRIBUIDO">Atribuído</option>
+                </select><br><br>
+
+                <button type="submit">Atualizar Status</button>
+            </form>
+        </div>
+    </div>
+    <% } %>
+
+    <%# NOVO MODAL: Editar Tarefa (Geral - para Supervisores) %>
+    <% if (profile === 'SUPERVISOR') { %>
+    <div id="edit-task-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="close-edit-task-modal">&times;</span>
+            <h2>Editar Tarefa</h2>
+            <p>Altere os detalhes da tarefa.</p>
+            <form id="form-edit-task">
+                <input type="hidden" id="edit-task-uid" name="uid">
+
+                <label for="edit-titulo-tarefa">Título da Tarefa:</label>
+                <input type="text" id="edit-titulo-tarefa" name="titulo" required><br><br>
+
+                <label for="edit-descricao-tarefa">Descrição:</label>
+                <textarea id="edit-descricao-tarefa" name="descricao" rows="4"></textarea><br><br>
+
+                <label for="edit-atendente-tarefa-input">Atendente:</label>
+                <div class="autocomplete-container">
+                    <input type="text" id="edit-atendente-tarefa-input" class="autocomplete-input" placeholder="Digite para buscar atendente" required>
+                    <button type="button" class="autocomplete-clear">&times;</button>
+                    <div id="edit-atendente-tarefa-suggestions"></div>
+                    <input type="hidden" id="edit-atendente-tarefa-id" name="atendenteId">
+                </div><br><br>
+
+                <label for="edit-supervisor-tarefa-input">Supervisor:</label>
+                <div class="autocomplete-container">
+                    <input type="text" id="edit-supervisor-tarefa-input" class="autocomplete-input" placeholder="Digite para buscar supervisor" required>
+                    <button type="button" class="autocomplete-clear">&times;</button>
+                    <div id="edit-supervisor-tarefa-suggestions"></div>
+                    <input type="hidden" id="edit-supervisor-tarefa-id" name="supervisorId">
+                </div><br><br>
+
+                <button type="submit">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+    <% } %>
+
+</body>
+</html>

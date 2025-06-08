@@ -1,0 +1,578 @@
+/* Reset básico */
+html {
+    box-sizing: border-box; /* Garante que padding e border sejam incluídos na largura/altura */
+}
+*, *::before, *::after {
+    box-sizing: inherit; /* Faz com que todos os elementos herdem o box-sizing */
+}
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex; /* Permite que o .container ocupe a altura total */
+    min-height: 100vh; /* Garante que o body ocupe 100% da altura da viewport */
+    background-color: #f4f7f6; /* Cor de fundo geral */
+    /* overflow-x: hidden; foi movido para o .content para ser mais específico */
+    /* Removido o overflow-x: hidden do body para evitar cortar conteúdo inesperado. */
+    /* Se o problema de scroll horizontal persistir, o problema estará em um elemento específico. */
+}
+
+/* Layout principal: Sidebar + Conteúdo */
+.container {
+    display: flex; /* Sidebar e Conteúdo lado a lado */
+    width: 100%; /* Ocupa toda a largura disponível */
+}
+
+/* Estilos da Sidebar */
+.sidebar {
+    width: 250px; /* Largura fixa da sidebar */
+    background-color: #1b1b1b; /* Cor de fundo da sidebar */
+    color: white;
+    padding: 20px 0; /* Padding superior/inferior, 0 nas laterais */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    position: fixed; /* Torna a sidebar fixa */
+    height: 100%; /* Ocupa a altura total da tela */
+    overflow-y: auto; /* Adiciona scroll se o conteúdo for maior que a tela */
+    display: flex;
+    flex-direction: column; /* Organiza logo, menu e logout em coluna */
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 0 20px; /* Adiciona padding lateral para o logo */
+}
+
+.logo img {
+    max-width: 150px; /* Tamanho do logo */
+    height: auto;
+}
+
+.menu {
+    flex-grow: 1; /* Faz o menu ocupar o espaço restante entre o logo e o logout */
+    padding: 0 20px; /* Adiciona padding lateral para o menu */
+}
+
+.menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu li {
+    margin-bottom: 10px;
+}
+
+.menu a {
+    text-decoration: none;
+    color: white;
+    padding: 12px 15px;
+    display: block;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.menu a:hover,
+.menu a.active { /* Para destacar a opção ativa */
+    background-color: #636363;
+}
+
+.logout-button {
+    margin-top: auto; /* Empurra o botão de logout para o final da sidebar */
+    padding: 20px; /* Padding ao redor do botão */
+    border-top: 1px solid rgba(255,255,255,0.1); /* Separador visual */
+}
+
+.logout-button a {
+    display: block;
+    text-align: center;
+    background-color: #e74c3c; /* Cor do botão de logout */
+    color: white;
+    padding: 12px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.logout-button a:hover {
+    background-color: #c0392b;
+}
+
+/* Estilos do Conteúdo Principal */
+.content {
+    margin-left: 250px; /* IMPORTANTE: Cria espaço para a sidebar fixa */
+    flex-grow: 1; /* Permite que o conteúdo ocupe o espaço restante */
+    padding: 30px; /* Padding interno do conteúdo */
+    background-color: #f4f7f6;
+    overflow-x: hidden; /* Esconde rolagem horizontal dentro do conteúdo principal */
+    /* Removido max-width, pois flex-grow: 1 já gerencia bem a largura restante */
+}
+
+.content h1 {
+    color: #333;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.content section {
+    margin-bottom: 40px;
+    padding: 25px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.content section h2 {
+    color: #292929;
+    margin-top: 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+/* Estilos de formulários (geral para forms dentro de sections ou modais) */
+.content form label,
+.modal-content form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+
+.content form input[type="text"],
+.content form input[type="email"],
+.content form input[type="password"],
+.content form textarea,
+.content form select,
+.modal-content form input[type="text"],
+.modal-content form input[type="email"],
+.modal-content form input[type="password"],
+.modal-content form textarea,
+.modal-content form select {
+    width: calc(100% - 22px); /* 100% menos padding (10px*2 + 1px*2 de border) */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    /* box-sizing: border-box já está globalmente */
+    font-size: 1em;
+}
+
+.content form textarea,
+.modal-content form textarea {
+    resize: vertical;
+}
+
+.content form button[type="submit"],
+.modal-content form button[type="submit"] {
+    background-color: #3f3e3e;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.content form button[type="submit"]:hover,
+.modal-content form button[type="submit"]:hover {
+    background-color: #3f3e3e;
+}
+
+/* Estilos dos Cards de Tarefa */
+.tasks-list ul { /* Remova se não for mais usar listas */
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.task-cards-container {
+    display: flex;
+    flex-direction: column; /* Alinha os cards verticalmente */
+    gap: 20px; /* Espaçamento entre os cards */
+    margin-top: 20px;
+    width: 100%; /* Garante que o container ocupe 100% da largura disponível */
+}
+
+/* CARD INDIVIDUAL */
+.task-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    padding: 0; /* O padding é gerenciado pelas seções internas */
+    display: flex;
+    flex-direction: column;
+    width: 100%; /* Ocupa a largura total do container pai */
+    /* margin-bottom foi movido para gap no .task-cards-container */
+}
+
+/* SEÇÃO SUPERIOR DO CARD (Título e Botão UUID) */
+.task-top-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px; /* Padding para esta seção */
+    padding-bottom: 10px; /* Menos padding na parte de baixo */
+}
+
+.task-header {
+    margin: 0; /* Remove margens extras */
+}
+
+.task-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.task-uuid-button-top .uuid-copy-button {
+    background-color: #292929;
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.task-uuid-button-top .uuid-copy-button:hover {
+    background-color: #3f3f3f;
+    transform: translateY(-1px);
+}
+
+.task-uuid-button-top .uuid-copy-button:active {
+    background-color: #3f3f3f;
+    transform: translateY(0);
+}
+
+/* Feedback visual quando o UUID é copiado */
+.uuid-copy-button.copied-feedback {
+    background-color: #3f3e3e;
+    color: white;
+    animation: copiedFlash 0.3s ease-out;
+}
+
+@keyframes copiedFlash {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* SEÇÃO DO CORPO DA TAREFA (Descrição) */
+.task-body {
+    padding: 0 20px; /* Padding lateral, sem vertical */
+    margin-bottom: 15px; /* Espaçamento abaixo da descrição */
+}
+
+.task-description {
+    font-size: 0.9em;
+    color: #555;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* SEÇÃO DE DETALHES INFERIOR E AÇÕES */
+.task-details-bottom {
+    display: flex;
+    justify-content: space-between; /* Espaço entre a grade de info e o status/ações */
+    align-items: flex-end; /* Alinha o conteúdo ao final (inferior) */
+    padding: 15px 20px 20px; /* Padding interno da seção inferior */
+    border-top: 1px solid #f0f0f0; /* Linha divisória como na imagem */
+    flex-wrap: wrap; /* Permite quebrar em telas menores */
+    row-gap: 15px; /* Espaço extra para linhas em telas menores, se houver quebra */
+}
+
+/* GRID DE INFORMAÇÕES (Atendente, Criado, Supervisor, Finalizado, etc.) */
+.task-info-grid {
+    display: grid;
+    /* auto minmax(0, 1fr) para cada par rótulo-valor */
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 5px 25px; /* Espaçamento vertical (entre linhas) e horizontal (entre colunas) */
+    font-size: 0.85em;
+    color: #666;
+    flex-grow: 1; /* Permite que o grid ocupe o espaço disponível */
+    padding-right: 20px; /* Espaço entre este grid e a seção de status/ações */
+    align-items: baseline; /* Alinha os itens pela base do texto para melhor visualização */
+}
+
+/* Os parágrafos (labels e values) agora são itens diretos do grid */
+.task-info-grid p {
+    margin: 0; /* Remover margens padrão dos parágrafos */
+    padding: 0;
+}
+
+.task-info-grid .task-detail-label {
+    font-weight: bold; /* O rótulo fica em negrito, como na imagem */
+    color: #333; /* Cor mais escura para o rótulo */
+    white-space: nowrap; /* Impede quebra de linha do rótulo */
+}
+
+.task-info-grid .task-detail-value {
+    font-weight: normal; /* O valor não está em negrito na imagem */
+    color: #555; /* Cor para o valor */
+    white-space: nowrap; /* Impede quebra de linha do valor */
+    overflow: hidden; /* Oculta texto que ultrapassa */
+    text-overflow: ellipsis; /* Adiciona "..." se o texto for muito longo */
+}
+
+/* Responsividade para telas menores: cada par rótulo-valor em sua própria linha */
+@media (max-width: 768px) {
+    .task-info-grid {
+        grid-template-columns: auto minmax(0, 1fr); /* Uma única coluna em telas menores */
+        gap: 5px 15px; /* Ajusta o espaçamento */
+    }
+}
+
+/* STATUS E BOTÕES DE AÇÃO NA PARTE INFERIOR */
+.task-status-actions {
+    display: flex;
+    align-items: center; /* Alinha o status e o botão verticalmente */
+    gap: 10px; /* Espaçamento entre o status e o botão */
+    flex-shrink: 0; /* Impede que esta seção encolha */
+}
+
+.task-status-value {
+    font-weight: bold;
+    padding: 4px 8px; /* Ajuste o padding para o balão de status */
+    border-radius: 4px;
+    white-space: nowrap;
+    font-size: 0.9em; /* Tamanho da fonte do status */
+    background-color: rgba(0, 0, 0, 0.05); /* Um cinza claro */
+    color: #333; /* Cor do texto padrão para status */
+}
+
+/* Cores dos status (mantém as que você já tinha, mas ajustadas para balão) */
+.status-atribuido {
+    color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+}
+.status-em_andamento {
+    color: #ffc107;
+    background-color: rgba(255, 193, 7, 0.1);
+}
+.status-concluido {
+    color: #28a745;
+    background-color: rgba(40, 167, 69, 0.1);
+}
+.status-cancelado {
+    color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+/* Botões de ação (Atualizar Status, Editar, Excluir) */
+.update-status-btn, .edit-btn, .delete-btn {
+    background-color: #292929;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease;
+}
+
+.update-status-btn:hover, .edit-btn:hover, .delete-btn:hover {
+    background-color: #4b4b4b;
+}
+
+/* --- NOVOS ESTILOS PARA BOTÕES DE CRIAÇÃO E MODAIS --- */
+
+/* Seção dos botões de criação */
+.creation-buttons-section {
+    text-align: center; /* Centraliza o h2 e o p */
+    margin-bottom: 40px;
+    padding: 25px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.creation-buttons-section h2 {
+    color: #292929;
+    margin-top: 0;
+    margin-bottom: 10px;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.creation-buttons-section p {
+    margin-bottom: 20px;
+    color: #666;
+}
+
+.button-group {
+    display: flex;
+    justify-content: center; /* Centraliza os botões */
+    gap: 20px; /* Espaçamento entre os botões */
+    flex-wrap: wrap; /* Permite quebrar linha em telas menores */
+}
+
+.action-button {
+    background-color: #3f3e3e;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.action-button:hover {
+    background-color: #555555;
+    transform: translateY(-2px);
+}
+
+.action-button:active {
+    background-color: #292929;
+    transform: translateY(0);
+}
+
+/* Estilos do Modal */
+.modal {
+    display: none; /* Escondido por padrão */
+    position: fixed; /* Fica fixo na tela */
+    z-index: 1000; /* Acima de todo o conteúdo */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Habilita scroll se o conteúdo for muito grande */
+    background-color: rgba(0,0,0,0.6); /* Fundo semi-transparente */
+    justify-content: center; /* Centraliza o conteúdo horizontalmente */
+    align-items: center; /* Centraliza o conteúdo verticalmente */
+    backdrop-filter: blur(5px); /* Efeito de blur no fundo */
+}
+
+.modal.active {
+    display: flex; /* Mostra o modal quando a classe 'active' é adicionada */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto; /* Centraliza o conteúdo */
+    padding: 30px;
+    border: 1px solid #888;
+    border-radius: 10px;
+    width: 90%; /* Largura padrão */
+    max-width: 600px; /* Largura máxima */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative; /* Para posicionar o botão de fechar */
+    animation: fadeIn 0.3s ease-out; /* Animação de entrada */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.modal-close:hover,
+.modal-close:focus {
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-content h2 {
+    color: #272727;
+    margin-top: 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+.modal-content p {
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.autocomplete-container {
+    position: relative; /* Para posicionar as sugestões abaixo do input */
+    width: 100%; /* Ocupa a largura do pai */
+    margin-bottom: 15px; /* Espaçamento igual aos outros inputs */
+}
+
+.autocomplete-input {
+    width: calc(100% - 22px); /* Mantém o padrão de largura com padding e borda */
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box; /* Garante que o padding não adicione à largura */
+    font-size: 1em;
+}
+
+.autocomplete-suggestions {
+    position: absolute;
+    top: 100%; /* Posiciona a lista abaixo do input */
+    left: 0;
+    right: 0;
+    z-index: 100; /* Garante que fique acima de outros elementos */
+    background-color: white;
+    border: 1px solid #ddd;
+    border-top: none; /* Remove a borda superior para parecer uma continuação do input */
+    border-radius: 0 0 4px 4px; /* Apenas bordas inferiores arredondadas */
+    max-height: 150px; /* Altura máxima da lista de sugestões */
+    overflow-y: auto; /* Adiciona scroll se muitas sugestões */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: none; /* Escondido por padrão, mostrado via JS */
+}
+
+.autocomplete-suggestions.active {
+    display: block; /* Mostra a lista quando ativa */
+}
+
+.autocomplete-suggestions div { /* Estilo para cada item de sugestão */
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee; /* Linha divisória entre sugestões */
+}
+
+.autocomplete-suggestions div:last-child {
+    border-bottom: none; /* Remove borda do último item */
+}
+
+.autocomplete-suggestions div:hover,
+.autocomplete-suggestions div.selected { /* selected para navegação com teclado */
+    background-color: #f0f0f0;
+}
+
+/* Responsividade para modais em telas muito pequenas */
+@media (max-width: 600px) {
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+    .action-button {
+        width: 100%; /* Botões de ação ocupam a largura total em telas pequenas */
+        margin-bottom: 10px; /* Espaçamento entre eles */
+    }
+    .button-group {
+        flex-direction: column; /* Empilha os botões em telas pequenas */
+    }
+}
+/* A media query para task-info-grid já está no lugar certo, mantida. */
+@media (max-width: 768px) {
+    .task-info-grid {
+        grid-template-columns: auto minmax(0, 1fr); /* Uma única coluna em telas menores */
+        gap: 5px 15px; /* Ajusta o espaçamento */
+    }
+}
