@@ -21,7 +21,7 @@
 * Linguagem de programação -> JAVA, JavaScript
 * Framework -> SpringBoot, Node.js, Express
 * Liguagem de marcação e estilização -> HTML e CSS
-* IDE -> Intellij
+* IDE -> Intellij e VsCode
 * Banco de Dados -> MySQL
 * Ambiente para versionamento de código -> Git e GitHub
 * Ambiente para Contêinerização -> Docker
