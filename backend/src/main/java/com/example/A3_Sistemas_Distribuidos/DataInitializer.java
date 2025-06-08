@@ -95,7 +95,7 @@ public class DataInitializer implements CommandLineRunner {
              tarefa3.setSupervisorFuncionario(repository.findByNome("Daniel Oliveira").get());
 
 
-             tarefaRepository.saveAll(Arrays.asList(tarefa1, tarefa2));
+             tarefaRepository.saveAll(Arrays.asList(tarefa1, tarefa2, tarefa3));
         }
     }
 }

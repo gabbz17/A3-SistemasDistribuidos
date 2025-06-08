@@ -1,6 +1,5 @@
 package com.example.A3_Sistemas_Distribuidos.infra.security;
 
-import com.example.A3_Sistemas_Distribuidos.entity.Funcionario;
 import com.example.A3_Sistemas_Distribuidos.repository.FuncionarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

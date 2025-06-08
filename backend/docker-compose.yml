@@ -17,8 +17,8 @@ services:
     image: mysql:8.0
     container_name: SistemasA3_db
     environment:
-      MYSQL_ROOT_PASSWORD: Mom3040#
-      MYSQL_DATABASE: A3_sistemas
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
     ports:
       - "3307:3306"
     volumes:

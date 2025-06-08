@@ -43,7 +43,13 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/funcionario").permitAll() // PreAuthorize no controller
+                        .requestMatchers(HttpMethod.POST, "/api/funcionario").permitAll() 
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/sistemas-docs.html").permitAll()
+                        .requestMatchers("/sistemas-docs").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/funcionario").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/funcionario/all").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/funcionario/id/*").authenticated()
@@ -109,13 +115,4 @@ public class SecurityConfig {
         return source;
     }
 
-    // O CorsFilter como um Bean separado é geralmente adicionado automaticamente pelo Spring.
-    // Mas se não funcionar, podemos tentar adicioná-lo manualmente à cadeia de filtros.
-    // Por enquanto, mantenha o @Bean CorsFilter() comentado ou remova-o.
-    /*
-    @Bean
-    public CorsFilter corsFilter() {
-        return new CorsFilter(corsConfigurationSource());
-    }
-    */
 }
