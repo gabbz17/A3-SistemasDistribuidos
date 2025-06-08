@@ -37,7 +37,7 @@ http://localhost:8080/sistemas-docs.html
 https://www.figma.com/design/dyCTMfXqlYbMFRVIsWL1jR/A3---Sistemas?node-id=0-1&m=dev&t=hr1OI3qedemc3ktl-1
 
 # Relatório geral do projeto
-
+[Relatório Geral - A3 Sistemas Distribuídos.pdf](https://github.com/user-attachments/files/20647022/Relatorio.Geral.-.A3.Sistemas.Distribuidos.pdf)
 
 # Link do vídeo no YouTube
 
