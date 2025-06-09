@@ -34,8 +34,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        // --- ADICIONE O CORS AO HTTP SECURITY AQUI ---
-        // Isso garante que o CorsFilter seja aplicado antes da autorização
+        
         httpSecurity.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         return httpSecurity
@@ -44,12 +43,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/funcionario").permitAll() 
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers("/sistemas-docs.html").permitAll()
-                        .requestMatchers("/sistemas-docs").permitAll()
-                        .requestMatchers("/webjars/**").permitAll()
-
                         .requestMatchers(HttpMethod.GET, "/api/funcionario").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/funcionario/all").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/funcionario/id/*").authenticated()
@@ -115,4 +108,5 @@ public class SecurityConfig {
         return source;
     }
 
+  
 }
