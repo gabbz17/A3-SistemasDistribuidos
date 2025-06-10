@@ -27,9 +27,6 @@
 * Ambiente para Contêinerização -> Docker
 * Método de autenticação -> JWT e OAuth
 
-# URL para documentação da API
-http://localhost:8080/sistemas-docs.html
-
 # Documento de configuração do ambiente para rodar a API
 [A3 - Sistemas - Configuracao de ambiente.pdf](https://github.com/user-attachments/files/20662847/A3.-.Sistemas.-.Configuracao.de.ambiente.pdf)
 
