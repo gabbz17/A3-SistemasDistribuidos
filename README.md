@@ -31,7 +31,8 @@
 http://localhost:8080/sistemas-docs.html
 
 # Documento de configuração do ambiente para rodar a API
-[A3 - Sistemas - Configuracao de ambiente.pdf](https://github.com/user-attachments/files/20646952/A3.-.Sistemas.-.Configuracao.de.ambiente.pdf)
+[A3 - Sistemas - Configuracao de ambiente.pdf](https://github.com/user-attachments/files/20662847/A3.-.Sistemas.-.Configuracao.de.ambiente.pdf)
+
 
 # Link para protótipo no Figma
 https://www.figma.com/design/dyCTMfXqlYbMFRVIsWL1jR/A3---Sistemas?node-id=0-1&m=dev&t=hr1OI3qedemc3ktl-1
